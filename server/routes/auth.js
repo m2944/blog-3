@@ -63,7 +63,7 @@ router.route('/login').post(async (req, res) => {
     const token = jwt.sign(
       tokenPayload,
       process.env.JWT_SECRET,
-      { expiresIn: '1d' } // Token expires in 1 day
+      { expiresIn: '30d' } // Token expires in 1 day
     );
 
     // 4. Send the token back to the frontend

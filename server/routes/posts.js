@@ -52,5 +52,59 @@ router.route('/create').post(auth, async (req, res) => {
 });
 
 // ... (your existing GET and GET:id routes) ...
+// --- (UPDATE) UPDATE A POST (PROTECTED) ---
+// Note: We use .post() here, but .put() or .patch() are also common.
+router.route('/update/:id').post(auth, async (req, res) => {
+  try {
+    const { title, content } = req.body;
+    const post = await Post.findById(req.params.id);
 
+    if (!post) {
+      return res.status(404).json({ msg: 'Post not found.' });
+    }
+
+    // 1. Check if the logged-in user is the author
+    // req.user is the user's ID from the auth middleware
+    if (post.author.toString() !== req.user) {
+      return res.status(401).json({ msg: 'User not authorized.' });
+    }
+
+    // 2. Update the post
+    post.title = title;
+    post.content = content;
+
+    // 3. Save and send back the updated post
+    const savedPost = await post.save();
+    res.json({
+      message: 'Post updated successfully!',
+      post: savedPost
+    });
+
+  } catch (err) {
+    res.status(500).json('Error: ' + err.message);
+  }
+});
+
+// --- (DELETE) DELETE A POST (PROTECTED) ---
+router.route('/:id').delete(auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ msg: 'Post not found.' });
+    }
+
+    // 1. Check if the logged-in user is the author
+    if (post.author.toString() !== req.user) {
+      return res.status(401).json({ msg: 'User not authorized.' });
+    }
+
+    // 2. Delete the post
+    await post.deleteOne(); // Mongoose 6+ has .deleteOne() on the document
+    res.json({ msg: 'Post deleted successfully.' });
+
+  } catch (err) {
+    res.status(500).json('Error: ' + err.message);
+  }
+});
 module.exports = router;

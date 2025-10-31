@@ -1,64 +1,81 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function PostPage() {
-  const { id } = useParams(); // Get the post ID from the URL
-  const [post, setPost] = useState(null); // State for a single post, start as null
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [post, setPost] = useState(null);
+  const [error, setError] = useState(null);
+  const { id } = useParams(); // Gets the post ID from the URL
+  const navigate = useNavigate();
+  const { user, token } = useAuth(); // Get the full user object and token
 
+  // 1. Fetch the single post data when the component loads
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        // Use the 'id' from the URL to build the API request URL
         const response = await axios.get(`http://localhost:5001/api/posts/${id}`);
         setPost(response.data);
       } catch (err) {
-        console.error('Error fetching post:', err);
-        setError('Post not found or an error occurred.');
-      } finally {
-        setLoading(false); // Stop loading regardless of success or error
+        setError(err.response?.data?.msg || 'Error fetching post.');
       }
     };
-
     fetchPost();
-  }, [id]); // This effect re-runs if the 'id' in the URL ever changes
+  }, [id]);
 
-  // --- Render based on loading or error states ---
-  if (loading) {
-    return <div style={{ padding: '20px' }}>Loading post...</div>;
-  }
+  // 2. Handle the delete button click
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        setError(null);
+        await axios.delete(
+          `http://localhost:5001/api/posts/${id}`,
+          {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }
+        );
+        // After deleting, go back to the homepage
+        navigate('/');
+      } catch (err) {
+        setError(err.response?.data?.msg || 'Error deleting post.');
+      }
+    }
+  };
+
+  // 3. Helper variable to check for authorship
+  // We check post.author._id (from .populate()) against user.id (from our auth context)
+  const isAuthor = post && user && post.author._id === user.id;
 
   if (error) {
-    return <div style={{ padding: '20px', color: 'red' }}>{error}</div>;
+    return <div style={{ padding: '20px' }}><p style={{ color: 'red' }}>{error}</p></div>;
   }
 
   if (!post) {
-    return <div style={{ padding: '20px' }}>Post not found.</div>;
+    return <div style={{ padding: '20px' }}>Loading...</div>;
   }
 
-  // --- Render the full post content ---
+  // 4. Render the post and (conditionally) the buttons
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '20px' }}>
+      <h1>{post.title}</h1>
+      <p>by: {post.author ? post.author.username : 'Unknown'}</p>
       
-      <h1 style={{ marginBottom: '10px' }}>{post.title}</h1>
+      {/* 4a. Conditionally render the admin buttons */}
+      {isAuthor && (
+        <div style={{ margin: '10px 0', display: 'flex', gap: '10px' }}>
+          <Link to={`/update/${post._id}`} style={{ textDecoration: 'none', padding: '5px 10px', background: '#007bff', color: 'white', borderRadius: '4px' }}>
+            Update
+          </Link>
+          <button onClick={handleDelete} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+            Delete
+          </button>
+        </div>
+      )}
       
-      <p style={{ color: '#555', fontSize: '1em', marginTop: 0 }}>
-        By: {post.author.username}
-      </p>
-
-      {/* This is a simple way to render content with line breaks.
-        A better (but more complex) way is to save as Markdown. 
-      */}
-      <div 
-        className="post-content" 
-        style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}
-      >
+      {/* 4b. Display the post content */}
+      <div style={{ whiteSpace: 'pre-wrap', borderTop: '1px solid #ccc', paddingTop: '20px', marginTop: '20px' }}>
         {post.content}
       </div>
-
-      {/* We will add Edit/Delete buttons here later */}
     </div>
   );
 }
