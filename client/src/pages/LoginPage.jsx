@@ -29,7 +29,7 @@ try {
       navigate('/');
 
     } catch (err) {
-      setError(err.response?.data || 'An error occurred.');
+      setError(err.response?.data.msg || err.response?.data || 'An error occurred.');
     }
   };
 
