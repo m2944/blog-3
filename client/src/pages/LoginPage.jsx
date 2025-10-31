@@ -14,9 +14,9 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
 
-    try {
+try {
       // Send the data to your backend's /login endpoint
-      const response = await axios.post('http://localhost:5001/api/auth/login', {
+      const response = await axios.post('/api/auth/login', { // <-- This is the updated line
         email,
         password,
       });

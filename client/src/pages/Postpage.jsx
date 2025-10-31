@@ -10,11 +10,12 @@ export default function PostPage() {
   const navigate = useNavigate();
   const { user, token } = useAuth(); // Get the full user object and token
 
-  // 1. Fetch the single post data when the component loads
+  // 1. Fetch the single post data
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/posts/${id}`);
+        // --- FIX 1: Use relative URL ---
+        const response = await axios.get(`/api/posts/${id}`);
         setPost(response.data);
       } catch (err) {
         setError(err.response?.data?.msg || 'Error fetching post.');
@@ -28,8 +29,9 @@ export default function PostPage() {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
         setError(null);
+        // --- FIX 2: Use relative URL ---
         await axios.delete(
-          `http://localhost:5001/api/posts/${id}`,
+          `/api/posts/${id}`,
           {
             headers: { 'Authorization': `Bearer ${token}` }
           }
@@ -43,7 +45,6 @@ export default function PostPage() {
   };
 
   // 3. Helper variable to check for authorship
-  // We check post.author._id (from .populate()) against user.id (from our auth context)
   const isAuthor = post && user && post.author._id === user.id;
 
   if (error) {

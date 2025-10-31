@@ -16,10 +16,11 @@ export default function UpdatePostPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/posts/${id}`);
+        // --- FIX 1: Use relative URL ---
+        const response = await axios.get(`/api/posts/${id}`);
         const post = response.data;
         
-        // 2. Security check: If the logged-in user is not the author, kick them out.
+        // 2. Security check
         if (post.author._id !== user.id) {
           setError('You are not authorized to edit this post.');
           setTimeout(() => navigate(`/post/${id}`), 2000); // Redirect after 2s
@@ -56,9 +57,9 @@ export default function UpdatePostPage() {
         }
       };
       
-      // 4. Send the update request to our new server route
+      // --- FIX 2: Use relative URL ---
       const response = await axios.post(
-        `http://localhost:5001/api/posts/update/${id}`,
+        `/api/posts/update/${id}`,
         { title, content },
         config
       );

@@ -15,9 +15,9 @@ export default function RegisterPage() {
     setError(null);
     setSuccess(null);
 
-    try {
+try {
       // Send the data to your backend's /register endpoint
-      const response = await axios.post('http://localhost:5001/api/auth/register', {
+      const response = await axios.post('/api/auth/register', { // <-- This is the updated line
         username,
         email,
         password,

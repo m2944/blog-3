@@ -27,9 +27,9 @@ export default function CreatePostPage() {
         }
       };
 
-      // 4. Send the new post data AND the config object
+// 4. Send the new post data AND the config object
       const response = await axios.post(
-        'http://localhost:5001/api/posts/create',
+        '/api/posts/create', // <-- This is the updated line
         { title, content },
         config
       );

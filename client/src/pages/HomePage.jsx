@@ -14,7 +14,7 @@ export default function HomePage() {
       try {
         setError(null);
         // 4. Make a GET request to your "get all posts" endpoint
-        const response = await axios.get('http://localhost:5001/api/posts');
+        const response = await axios.get('/api/posts');
         
         // 5. Store the posts from the server in our state
         setPosts(response.data);
